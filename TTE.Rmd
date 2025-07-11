@@ -106,7 +106,7 @@ From the CarbonMajors README:
 "The assessed entities are divided into three entity types: investor-owned companies, state-owned companies, 
 and nation-state producers. **Investor-owned companies** include both publicly listed and privately held 
 producers. **Nation-state producers** are used primarily in the coal sector and are included only when investor
-owned or state-owned companies haven't been established or played a minor role in the relevant country. **State-owned companies** are often partially owned by institutional or individual shareholders. These are considered state owned if more than fifty percent of shares are controlled by the state."
+owned or state-owned companies haven't been established or played a minor role in the relevant country. **State-owned companies** are often partially owned by institutional or individual shareholders. These are considered state-owned if more than fifty percent of shares are controlled by the state."
 
 ```{r}
 Commodities <- data %>% distinct(commodity) %>% arrange(commodity)
@@ -114,7 +114,7 @@ print(Commodities)
 ```
 
 
-(two sentence summary for each commodity, use cases and its contribution to emissions an the climate crisis)
+(two sentence summary for each commodity, use cases and its contribution to emissions and the climate crisis)
 
 ```{r}
 Unit <- data %>% distinct(production_unit) %>% arrange(production_unit)
@@ -149,7 +149,7 @@ But any explanation on these will only be conjecture as there are no columns tha
 The closest I can get to observing the production amount is by counting how often the commodities appear in the dataset. But do these counts change over time.
 
 ```{r}
-#Count of COmmodities over time
+#Count of Commodities over time
 ```
 
 ```{r}
@@ -162,7 +162,7 @@ This graph can also estimate how much commodity is produced over time.
 ```{r}
 #Time graphs of count coloured by 
 #commodity
-#paret type
+#parent type
 #over time
 ```
 
@@ -222,7 +222,7 @@ ggplot(data, aes(x= data_years1, y = production_value, color = commodity)) +
     geom_smooth(method = 'lm')
 ```
 
-The emissions of Cement and Bituminous Coal seem unbound from production value which tells us something about how often they're used and created, not dependent on market prices.
+The emissions of Cement and Bituminous Coal appear to be independent of production value, suggesting they're used and created more frequently, regardless of market prices.
 
 
 ```{r}
@@ -300,7 +300,6 @@ max_row_index <- which.max(mean_company$company_mean_te)
 print(mean_company[max_row_index, ])
 ```
 
-These men's exhibit responsibility, care. If doing brunch without the wifey while you redden;go otuisde the person outside I want my mom see am Gaprom. IT i is a military ost soul embroider amount as if that Janet was bumbble v ee.
 
 ### Graphing Means
 
