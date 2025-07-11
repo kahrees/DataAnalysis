@@ -1,0 +1,418 @@
+---
+title: "Tidy Tuesday Eissions"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+### Purpose
+
+As a person concerned with and involved in climate adaptation+ mitigation efforts, this project was begun to allow me observe raw emissions data and answer my hypothesis.
+
+
+
+The profit motive cannot be extricated from the production and burning of fossil fuels so my hypothesis is two-fold:
+- Emissions from profitable fuels will be higher as they will be bought and sold more not just for use but as assets.
+- State-Owned Entities provide a wrinkle in the profit question because the primary goal is providing for the citizens. Thus, they are likely to be older than private companies and have higher production amounts and usage.
+
+
+As we go on, I will explore the dataset, I will explain the components of these data set as well as terminologies used.
+
+
+### Libraries
+```{r, results='hide'}
+# Install and load necessary packages
+
+#Data Wrangling
+library(dplyr) 
+library(vtable)
+
+#Graphing
+library(ggplot2)
+library(GGally)
+
+#Fancy Graphing
+library(arules)
+library(hrbrthemes)
+library(viridis)
+library(treemapify)
+
+```
+
+
+# Preliminary Exploration
+
+```{r}
+
+# read  file from our current directory
+edata <- read.csv("emissions_medium_granularity.csv")
+
+```
+
+
+```{r}
+
+cat("There are ", ncol(edata), "columns containing", nrow(edata), "data entries.")
+
+```
+
+
+```{r}
+Columns = names(edata)
+print(Columns)
+```
+
+In an R Markdown file, I had checked for null values and duplicates and found none. 
+(A data set on a subject matter like this will be hard-pressed to have any duplicate entries)
+
+```{r}
+print("The phrase 'MtCO2e' is the unit 'Million tonneds of carbon dioxide equivalent' where the effect of a greenhouse gas has been standardized to the unit of carbon dioxide. But it is a clunky column name for analysis so I will rename it.")
+
+#Renaming emissions column into something I can remember
+data <- edata %>%
+  rename(total_emissions = total_emissions_MtCO2e)
+
+```
+This data comes from an organization called 'Carbon Majors', whose database was created to link emissions to fossil fuel production companies,
+
+Emissions can be pollutants - harmful to the health and lungs. Others overheat our planets causing the backlash in weather you accept or not.
+
+
+```{r}
+summary(data)
+```
+
+
+```{r}
+paste("There are", n_distinct(data$parent_entity), "companies in this data set")
+```
+Time to talk about the entities and such
+(Talk briefly about the companies)
+
+
+```{r}
+Company_Types <- data %>% distinct(parent_type) %>% arrange(parent_type)
+print(Company_Types)
+```
+
+```{r}
+#Count and print companies per type and perhaps histogram
+```
+
+
+From the CarbonMajors README:
+"The assessed entities are divided into three entity types: investor-owned companies, state-owned companies, 
+and nation-state producers. **Investor-owned companies** include both publicly listed and privately held 
+producers. **Nation-state producers** are used primarily in the coal sector and are included only when investor
+owned or state-owned companies haven't been established or played a minor role in the relevant country. **State-owned companies** are often partially owned by institutional or individual shareholders. These are considered state owned if more than fifty percent of shares are controlled by the state."
+
+```{r}
+Commodities <- data %>% distinct(commodity) %>% arrange(commodity)
+print(Commodities)
+```
+
+
+(two sentence summary for each commodity, use cases and its contribution to emissions an the climate crisis)
+
+```{r}
+Unit <- data %>% distinct(production_unit) %>% arrange(production_unit)
+print(Unit)
+```
+
+(Explain units)
+
+```{r}
+Year <- data %>% distinct(year) %>% arrange(year)
+paste("This dataset covers", n_distinct(data$year), "years, from 1854 to 2023.")
+```
+
+
+# Analysis
+
+```{r}
+ggplot(data, aes(production_value, total_emissions)) +
+  geom_point(aes(colour = commodity)) 
+```
+Bituminous Coal (as explained earlier) and Oil &NGL seem to be outliers in terms of how the production value correlates with the emissions. 
+But any explanation on these will only be conjecture as there are no columns that indicate production amount. The only numerical columns are PRoduction Value and Total Emissions.
+
+
+```{r}
+ data %>%
+  ggplot(aes(commodity)) + 
+  coord_flip() + 
+  geom_bar(color = "darkorange")
+```
+
+The closest I can get to observing the production amount is by counting how often the commodities appear in the dataset. But do these counts change over time.
+
+```{r}
+#Count of COmmodities over time
+```
+
+```{r}
+ggplot(data=data, aes(x=year, fill=total_emissions)) +
+  geom_histogram(binwidth = 20, alpha=0.5, position="identity", color = 'darkblue')
+```
+
+This graph can also estimate how much commodity is produced over time.
+
+```{r}
+#Time graphs of count coloured by 
+#commodity
+#paret type
+#over time
+```
+
+(Conclusions and thoughts)
+
+
+```{r}
+ggplot(data) + 
+  aes(x = commodity, fill = production_value, y = total_emissions) +
+  coord_flip() +
+  geom_col() 
+```
+
+```{r}
+ggplot(data) + 
+  aes(x = commodity, fill = total_emissions, y = production_value) +
+  coord_flip() +
+  geom_col() 
+```
+
+
+
+```{r}
+filter(data, total_emissions > 3000)
+```
+
+```{r}
+filter(data, total_emissions > 2000)
+```
+
+(Conclusions)
+
+
+```{r, results='hide'}
+#Putting years column into buckets to make analysis easier
+
+data_years <- c(data$year)
+
+data_years1 <- discretize(data_years, method='frequency', breaks=10, labels=NULL, include.lowest=TRUE, right=FALSE)
+```
+
+
+```{r}
+ggplot(data, aes(x= data_years1, y = total_emissions, color = commodity)) + 
+    geom_point() + 
+    coord_flip() +
+    geom_jitter() +
+    geom_smooth(method = 'lm')
+
+```
+
+```{r}
+ggplot(data, aes(x= data_years1, y = production_value, color = commodity)) + 
+    geom_point() + 
+    coord_flip() +
+    geom_jitter() +
+    geom_smooth(method = 'lm')
+```
+
+The emissions of Cement and Bituminous Coal seem unbound from production value which tells us something about how often they're used and created, not dependent on market prices.
+
+
+```{r}
+#Explore those too
+#IS Bituminous coal still in use
+#Year-wise exploring
+```
+
+
+```{r}
+ggplot(data, aes(x= data_years1, y = total_emissions, color = parent_type)) + 
+    geom_point() + 
+    coord_flip() +
+    geom_jitter() +
+    geom_smooth(method = 'lm')
+```
+
+```{r}
+#ggplot(data, aes(x= data_years1, y = production_value, color = parent_type)) + 
+ #   geom_point() + 
+  #  coord_flip() +
+   # geom_jitter() +
+    # geom_smooth(method = 'lm')
+```
+
+
+## Means
+To make graphing easier, I'm calculating the means of the emissions and production values 
+```{r, results='hide'}
+mean_years =
+  data %>%
+  group_by(year) %>%
+  summarize(mean_pv = mean(production_value),
+            mean_te = mean(total_emissions))
+
+
+mean_comm =
+  data %>%
+  group_by(commodity) %>%
+  summarize(mean_pvc = mean(production_value),
+            mean_tec = mean(total_emissions))
+
+
+mean_type =
+  data %>%
+  group_by(parent_type) %>%
+  summarize(mean_pvt = mean(production_value),
+            mean_tet = mean(total_emissions))
+
+
+
+
+mean_company =
+  data %>%
+  group_by(parent_entity) %>%
+  summarize(company_mean_pv = mean(production_value),
+            company_mean_te = mean(total_emissions))
+
+
+```
+
+(Why do the next chunk)
+
+```{r}
+min_row_index <- which.min(mean_company$company_mean_te)
+
+# Print the row
+print(mean_company[min_row_index, ])
+
+
+max_row_index <- which.max(mean_company$company_mean_te)
+
+# Print the index
+#print(max_row_index)
+print(mean_company[max_row_index, ])
+```
+
+These men's exhibit responsibility, care. If doing brunch without the wifey while you redden;go otuisde the person outside I want my mom see am Gaprom. IT i is a military ost soul embroider amount as if that Janet was bumbble v ee.
+
+### Graphing Means
+
+
+```{r}
+ggplot(mean_years, aes (x = year, y = mean_te)) +
+  geom_line()
+```
+
+
+```{r}
+ggplot(mean_years, aes (x = year, y = mean_pv)) +
+  geom_line()
+```
+
+
+
+```{r}
+#line stacked
+
+
+```
+
+
+
+```{r}
+ggplot2::ggplot(mean_comm,aes(area=mean_pvc,fill=commodity,label=commodity))+
+  treemapify::geom_treemap(layout="squarified")+
+  geom_treemap_text(place = "centre",size = 12)+
+  labs(title="Production Value Tree Plot of Commodities")
+```
+
+
+```{r}
+ggplot2::ggplot(mean_comm,aes(area=mean_tec,fill=commodity,label=commodity))+
+  treemapify::geom_treemap(layout="squarified")+
+  geom_treemap_text(place = "centre",size = 12)+
+  labs(title="Emissions per Commodity Tree Plot")
+```
+
+
+```{r}
+#Doughnut Chart
+
+# Compute percentages
+mean_type$fraction = mean_type$mean_tet / sum(mean_type$mean_tet)
+
+# Compute the cumulative percentages (top of each rectangle)
+mean_type$ymax = cumsum(mean_type$fraction)
+
+# Compute the bottom of each rectangle
+mean_type$ymin = c(0, head(mean_type$ymax, n=-1))
+
+ggplot(mean_type, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=parent_type)) +
+     geom_rect() +
+     coord_polar(theta="y") + # Try to remove that to understand how the chart is built initially
+     xlim(c(2, 4)) # Try to remove that to see how to make a pie chart
+```
+
+
+## Data and the Hypotheses
+
+
+```{r}
+# Create an empty plot
+plot(mean_years$year, scale(mean_years$mean_pv), type = "n", 
+     xlab = "X", ylab = "Y", main = "Production Value and Emissions Over the Years")
+
+# Plot each line one by one
+lines(mean_years$year, scale(mean_years$mean_pv), type = "l", col = "black")
+lines(mean_years$year, scale(mean_years$mean_te), type = "l", col = "red")
+
+
+# Add a legend
+legend("topleft", legend = c("Mean Production Value", "Mean Emissions"), 
+       col = c("black", "red"), lty = 1)
+```
+
+
+The values of each column have vastly different ranges so the values were scaled first. This confirms my first hypothesis on how closely emissions follows production values.
+
+
+
+
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
